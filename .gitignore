@@ -104,3 +104,5 @@ ENV/
 results/*
 
 .DS_Store
+
+\.idea/

@@ -11,8 +11,9 @@ import torch.nn.functional as F
 
 class LearnedGroupConv(nn.Module):
     global_progress = 0.0
+
     def __init__(self, in_channels, out_channels, kernel_size, stride=1,
-                 padding=0, dilation=1, groups=1, 
+                 padding=0, dilation=1, groups=1,
                  condense_factor=None, dropout_rate=0.):
         super(LearnedGroupConv, self).__init__()
         self.norm = nn.BatchNorm2d(in_channels)
@@ -99,7 +100,7 @@ class LearnedGroupConv(nn.Module):
     @property
     def stage(self):
         return int(self._stage[0])
-        
+
     @stage.setter
     def stage(self, val):
         self._stage.fill_(val)
@@ -142,12 +143,12 @@ def ShuffleLayer(x, groups):
 class CondensingLinear(nn.Module):
     def __init__(self, model, drop_rate=0.5):
         super(CondensingLinear, self).__init__()
-        self.in_features = int(model.in_features*drop_rate)
+        self.in_features = int(model.in_features * drop_rate)
         self.out_features = model.out_features
         self.linear = nn.Linear(self.in_features, self.out_features)
         self.register_buffer('index', torch.LongTensor(self.in_features))
         _, index = model.weight.data.abs().sum(0).sort()
-        index = index[model.in_features-self.in_features:]
+        index = index[model.in_features - self.in_features:]
         self.linear.bias.data = model.bias.data.clone()
         for i in range(self.in_features):
             self.index[i] = index[i]
@@ -163,7 +164,7 @@ class CondensingConv(nn.Module):
     def __init__(self, model):
         super(CondensingConv, self).__init__()
         self.in_channels = model.conv.in_channels \
-                         * model.groups // model.condense_factor
+                           * model.groups // model.condense_factor
         self.out_channels = model.conv.out_channels
         self.groups = model.groups
         self.condense_factor = model.condense_factor
@@ -181,7 +182,7 @@ class CondensingConv(nn.Module):
         for i in range(self.groups):
             for j in range(model.conv.in_channels):
                 if index < (self.in_channels // self.groups) * (i + 1) \
-                         and mask[i, j] == 1:
+                        and mask[i, j] == 1:
                     for k in range(self.out_channels // self.groups):
                         idx_i = int(k + i * (self.out_channels // self.groups))
                         idx_j = index % (self.in_channels // self.groups)
@@ -206,7 +207,7 @@ class CondensingConv(nn.Module):
 class CondenseLinear(nn.Module):
     def __init__(self, in_features, out_features, drop_rate=0.5):
         super(CondenseLinear, self).__init__()
-        self.in_features = int(in_features*drop_rate)
+        self.in_features = int(in_features * drop_rate)
         self.out_features = out_features
         self.linear = nn.Linear(self.in_features, self.out_features)
         self.register_buffer('index', torch.LongTensor(self.in_features))
@@ -218,7 +219,7 @@ class CondenseLinear(nn.Module):
 
 
 class CondenseConv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, 
+    def __init__(self, in_channels, out_channels, kernel_size,
                  stride=1, padding=0, groups=1):
         super(CondenseConv, self).__init__()
         self.in_channels = in_channels
@@ -245,7 +246,7 @@ class CondenseConv(nn.Module):
 
 
 class Conv(nn.Sequential):
-    def __init__(self, in_channels, out_channels, kernel_size, 
+    def __init__(self, in_channels, out_channels, kernel_size,
                  stride=1, padding=0, groups=1):
         super(Conv, self).__init__()
         self.add_module('norm', nn.BatchNorm2d(in_channels))
