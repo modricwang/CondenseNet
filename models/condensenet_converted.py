@@ -11,6 +11,7 @@ from layers import ShuffleLayer, Conv, CondenseConv, CondenseLinear
 
 __all__ = ['CondenseNet']
 
+
 class _DenseLayer(nn.Module):
     def __init__(self, in_channels, growth_rate, args):
         super(_DenseLayer, self).__init__()
